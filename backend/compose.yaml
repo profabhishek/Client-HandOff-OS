@@ -1,0 +1,25 @@
+# Local development database.
+# Start:  docker compose up -d
+# Stop:   docker compose down        (data is kept in the volume)
+# Reset:  docker compose down -v     (deletes all local data)
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: handoffos-postgres
+    environment:
+      POSTGRES_DB: handoffos
+      POSTGRES_USER: handoffos
+      POSTGRES_PASSWORD: handoffos
+    ports:
+      # 5433 on your machine -> 5432 in the container (avoids clashing with a locally installed Postgres)
+      - "5433:5432"
+    volumes:
+      - handoffos-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U handoffos -d handoffos"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  handoffos-pgdata:

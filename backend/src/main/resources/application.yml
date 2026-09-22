@@ -1,0 +1,42 @@
+spring:
+  application:
+    name: handoff-os
+
+  # Values can be overridden with environment variables (DB_URL, DB_USERNAME, DB_PASSWORD).
+  # Defaults match compose.yaml so local dev works with zero setup.
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5433/handoffos}
+    username: ${DB_USERNAME:handoffos}
+    password: ${DB_PASSWORD:handoffos}
+
+  jpa:
+    # Don't keep DB sessions open while rendering the HTTP response (avoids hidden lazy-loading queries).
+    open-in-view: false
+    hibernate:
+      # Flyway creates tables. Hibernate only CHECKS that entities match the tables.
+      # Never use "update" or "create" here.
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: true
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+server:
+  port: 8080
+  error:
+    include-stacktrace: never
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+logging:
+  level:
+    com.handoffos: DEBUG
+    # Uncomment to see every SQL statement Hibernate runs (useful while learning):
+    # org.hibernate.SQL: DEBUG

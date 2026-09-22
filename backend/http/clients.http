@@ -1,0 +1,63 @@
+### Client API - try it from IntelliJ (click the green arrow) or VS Code "REST Client" extension.
+### Tenant A = 1111..., Tenant B = 2222... (seeded by V2 migration)
+
+@base = http://localhost:8080/api/v1
+@tenantA = 11111111-1111-1111-1111-111111111111
+@tenantB = 22222222-2222-2222-2222-222222222222
+
+### Health check (no tenant header needed)
+GET http://localhost:8080/actuator/health
+
+### Create a client in tenant A
+POST {{base}}/clients
+X-Tenant-Id: {{tenantA}}
+Content-Type: application/json
+
+{
+  "name": "ABC Retail Pvt Ltd",
+  "primaryContactName": "Asha Verma",
+  "primaryContactEmail": "asha@abc-retail.example",
+  "notes": "E-commerce rebuild"
+}
+
+### List clients in tenant A
+GET {{base}}/clients?page=0&size=25
+X-Tenant-Id: {{tenantA}}
+
+### List clients in tenant B -> should be EMPTY (tenant isolation)
+GET {{base}}/clients
+X-Tenant-Id: {{tenantB}}
+
+### Get one client (paste an id from the create response)
+GET {{base}}/clients/PASTE-ID-HERE
+X-Tenant-Id: {{tenantA}}
+
+### Same id from tenant B -> must be 404
+GET {{base}}/clients/PASTE-ID-HERE
+X-Tenant-Id: {{tenantB}}
+
+### Update only the notes
+PATCH {{base}}/clients/PASTE-ID-HERE
+X-Tenant-Id: {{tenantA}}
+Content-Type: application/json
+
+{
+  "notes": "Handover due in March"
+}
+
+### Validation error -> 400 with "errors"
+POST {{base}}/clients
+X-Tenant-Id: {{tenantA}}
+Content-Type: application/json
+
+{
+  "name": "",
+  "primaryContactEmail": "not-an-email"
+}
+
+### Missing tenant header -> 400
+GET {{base}}/clients
+
+### Delete (soft) -> 204
+DELETE {{base}}/clients/PASTE-ID-HERE
+X-Tenant-Id: {{tenantA}}
